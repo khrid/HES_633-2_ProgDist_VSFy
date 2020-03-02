@@ -31,6 +31,7 @@ The server and client applications should be coded in java based on the librarie
      - Info for all the useful operations
     - Warning for all the possible network errors
     - Severe for the exceptions
+
 You can use command words to discuss between the client and the server or use different ports on the server for the client communications 
 
 ### Minimal specifications of the client: 
