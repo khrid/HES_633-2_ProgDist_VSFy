@@ -1,5 +1,6 @@
 package main.network;
 
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 
 
@@ -7,11 +8,13 @@ public class NetworkInterfacePerso {
     private String interfaceName;   // interface name (eth0)
     private String interfaceDisplayname; // interface display name (Intel(R) 82579LM Gigabit Network Connection)
     private String ip; // interface IPv4 IP (172.16.41.134)
+    private InetAddress address; // objet inetaddress utilisé pour la création du socket
 
-    public NetworkInterfacePerso(String _interfaceName, String _interfaceDisplayname, String _ip) {
+    public NetworkInterfacePerso(String _interfaceName, String _interfaceDisplayname, String _ip, InetAddress _address) {
         interfaceName = _interfaceName;
         interfaceDisplayname = _interfaceDisplayname;
         ip = _ip;
+        address = _address;
     }
 
     @Override public String toString() {
@@ -29,5 +32,9 @@ public class NetworkInterfacePerso {
 
     public String getIp() {
         return ip;
+    }
+
+    public InetAddress getAddress() {
+        return address;
     }
 }
