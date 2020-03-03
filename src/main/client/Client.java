@@ -71,18 +71,49 @@ public class Client implements Serializable {
                 break;
             }
             System.out.print("Enter action : ");
-            String action = scanner.nextLine().toUpperCase();
+            String command = scanner.nextLine();
+            String action = command.split(" ")[0].toUpperCase();
+
             try {
-                if (action.equalsIgnoreCase(Exchange.BYE)) {
-                    dataOut.writeUTF(action);
-                    interrupted = true;
-                } else if (action.equalsIgnoreCase(Exchange.GETCLIENTS)) {
-                    dataOut.writeUTF(action);
-                    String ret = dataIn.readUTF();
-                    knownClients = new Gson()
-                      .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
-                      }.getType());
-                    System.out.println(knownClients.size());
+                switch (action) {
+                    case Exchange.BYE:
+                        System.out.print("Disconnecting from server. ");
+                        dataOut.writeUTF(action);
+                        interrupted = true;
+                        System.out.println("Done.");
+                        break;
+                    case Exchange.GETCLIENTS:
+                        System.out.print("Getting list of server's clients. ");
+                        dataOut.writeUTF(action);
+                        String ret = dataIn.readUTF();
+                        knownClients = new Gson()
+                          .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
+                          }.getType());
+                        //System.out.println(knownClients.size());
+                        System.out.println("Done.");
+                        break;
+                    case Exchange.LISTFILES:
+                        if(knownClients.size() > 0) {
+                            for (Client c : knownClients) {
+                                System.out.println("Client " + c.getUuid() + " : ");
+                                for (String s : c.getFiles()) {
+                                    System.out.println("\t" + s);
+                                }
+                            }
+                        } else {
+                            System.out.println("No known clients. (Have you launched the "+Exchange.GETCLIENTS+" command?)");
+                        }
+                        break;
+                    case "IP":
+                        String param = command.split(" ")[1];
+                        for (Client c : knownClients) {
+                            if(c.getUuid().equalsIgnoreCase(param)) {
+                                System.out.println(c.getIp());
+                            } else {
+                                //System.out.println("No known clients with UUID "+param);
+                            }
+                        }
+                        break;
                 }
             } catch (IOException e) {
                 System.out.println("Lost connection with the server.");
@@ -92,8 +123,16 @@ public class Client implements Serializable {
         }
     }
 
+    public Collection<String> getFiles() {
+        return files;
+    }
+
     public String getUuid() {
         return uuid;
+    }
+
+    public String getIp() {
+        return address.getHostAddress();
     }
 
     public void scanFolder(String base_dir) {

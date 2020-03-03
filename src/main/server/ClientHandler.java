@@ -20,8 +20,6 @@ public class ClientHandler extends Thread {
 
     private DataOutputStream dataOut;
 
-    private String name;
-
     private Client c;
 
     public ClientHandler(Server server, Socket exchangeSocket, DataInputStream dataIn, DataOutputStream dataOut) {
@@ -29,7 +27,6 @@ public class ClientHandler extends Thread {
         this.exchangeSocket = exchangeSocket;
         this.dataIn = dataIn;
         this.dataOut = dataOut;
-        this.name = exchangeSocket.getLocalAddress().getHostAddress() + "_" + this.getId() + "_" + this.getName();
         //this.uuid = "";
 
         try {
@@ -71,7 +68,7 @@ public class ClientHandler extends Thread {
                 }
 
             } catch (IOException e) {
-                System.out.println("Lost connection with " + this.name + ", killing thread");
+                System.out.println("Lost connection with "+ this.c.getUuid() + ", killing thread");
                 try {
                     dataIn.close();
                 } catch (IOException ex) {
