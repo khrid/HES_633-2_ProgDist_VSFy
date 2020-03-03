@@ -13,8 +13,11 @@ import java.util.Scanner;
 public class AppClient {
 
     public static void main(String[] args) {
-        NetworkInterfacePerso nip = null;
+        NetworkInterfacePerso nip;
         String serverIp = "172.16.41.134";
+        Scanner scanner = new Scanner(System.in);
+        boolean interrupted = false;
+        String BASE_DIR = "/tmp/vsfy";
 
         System.out.println("---------------\n" +
                 "- VSFy Client - \n" +
@@ -23,6 +26,10 @@ public class AppClient {
         NetworkTools nt = new NetworkTools();
         nip = nt.interfaceChooser();
         Client c = new Client(nip);
+        c.scanFolder(BASE_DIR);
         c.connectToServer(serverIp);
+        c.communicate();
+
+
     }
 }
