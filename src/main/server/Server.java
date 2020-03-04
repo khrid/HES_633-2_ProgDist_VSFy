@@ -68,12 +68,12 @@ public class Server {
 
     public void registerClient(Client client) {
         clientsObject.add(client);
-        System.out.println("Registered client " + client.getUuid() + " with IP " + client.getIp());
+        System.out.println("Registered client " + client.getUuid() + " with ip address " + client.getIp()+". Total clients : "+ clientsObject.size());
     }
 
     public void removeClient(Client client) {
         clientsObject.remove(client);
-        System.out.println("Removed client " + client.getUuid() + ", total " + clientsObject.size());
+        System.out.println("Removed client " + client.getUuid() + ". Total clients : " + clientsObject.size());
     }
 
     public ArrayList<String> getClients() {

@@ -10,6 +10,10 @@ import main.network.NetworkInterfacePerso;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Client implements Serializable {
@@ -47,15 +51,15 @@ public class Client implements Serializable {
     public void connectToServer(String serverName) {
         try {
             serverAddress = InetAddress.getByName(serverName); // récupération de l'objet InetAdress pour le serveur
+            System.out.print("Connecting to server " + serverAddress + ":" + port + ". ");
             exchangeSocket = new Socket(serverAddress, port); // socket d'échange entre le client et le serveur
             exchangeSocket.setKeepAlive(true); // pour ne pas kill le socket trop vite
             dataIn = new DataInputStream(exchangeSocket.getInputStream()); // flux d'échange - entrée
             dataOut = new DataOutputStream(exchangeSocket.getOutputStream()); // flux d'échange - sortie
             dataOut.writeUTF(Exchange.HELLO); // on fait le handshake du début
             dataOut.writeUTF(
-              new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
-
-            System.out.println("Handshake with server done."); // info utilisateur que la connexion est établie
+                    new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
+            System.out.println("Done."); // info utilisateur que la connexion est établie
 
         } catch (IOException e) {
             System.out.println("Could not establish a connection with the server.");
@@ -87,27 +91,31 @@ public class Client implements Serializable {
                         dataOut.writeUTF(action);
                         String ret = dataIn.readUTF();
                         knownClients = new Gson()
-                          .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
-                          }.getType());
+                                .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
+                                }.getType());
                         //System.out.println(knownClients.size());
                         System.out.println("Done.");
                         break;
                     case Exchange.LISTFILES:
-                        if(knownClients.size() > 0) {
+                        if (knownClients.size() > 0) {
                             for (Client c : knownClients) {
-                                System.out.println("Client " + c.getUuid() + " : ");
-                                for (String s : c.getFiles()) {
-                                    System.out.println("\t" + s);
+                                System.out.println("Client " + c.getUuid() + " / IP "+c.getIp()+" : ");
+                                if(c.getFiles().size() > 0) {
+                                    for (String s : c.getFiles()) {
+                                        System.out.println("\t" + s);
+                                    }
+                                } else {
+                                    System.out.println("\tNothing to share");
                                 }
                             }
                         } else {
-                            System.out.println("No known clients. (Have you launched the "+Exchange.GETCLIENTS+" command?)");
+                            System.out.println("No known clients. (Have you launched the " + Exchange.GETCLIENTS + " command?)");
                         }
                         break;
                     case "IP":
                         String param = command.split(" ")[1];
                         for (Client c : knownClients) {
-                            if(c.getUuid().equalsIgnoreCase(param)) {
+                            if (c.getUuid().equalsIgnoreCase(param)) {
                                 System.out.println(c.getIp());
                             } else {
                                 //System.out.println("No known clients with UUID "+param);
@@ -136,12 +144,22 @@ public class Client implements Serializable {
     }
 
     public void scanFolder(String base_dir) {
-        File folder = new File(base_dir);
-
-        for (File f : Objects.requireNonNull(folder.listFiles())) {
-            if (f.isFile()) {
-                files.add(f.toString());
+        Path path = Paths.get(base_dir);
+        if (Files.exists(path)) { // si le répertoire existe
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(base_dir))) {
+                if (directoryStream.iterator().hasNext()) { // si le répertoire a des fichiers dedans
+                    File folder = new File(base_dir);
+                    for (File f : Objects.requireNonNull(folder.listFiles())) {
+                        if (f.isFile()) {
+                            files.add(f.toString());
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("No files to share in directory \"" + base_dir + "\"");
             }
+        } else {
+            System.out.println("Directory \"" + base_dir + "\" does not exist. Carrying on.");
         }
     }
 }
