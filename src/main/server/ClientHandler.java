@@ -4,9 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import main.client.Client;
-import main.network.Exchange;
+import main.network.ExchangeEnum;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -47,19 +50,19 @@ public class ClientHandler extends Thread {
             try {
                 input = dataIn.readUTF();
                 //System.out.println("Data received : " + input);
-                switch (input) {
-                    case Exchange.HELLO:
+                switch (ExchangeEnum.valueOf(input)) {
+                    case HELLO:
                         System.out.println("New client saying hello.");
                         //this.server.registerClient(this.name);
                         c = new Gson().fromJson(new JsonReader(new StringReader(dataIn.readUTF())), Client.class);
                         this.server.registerClient(c);
                         break;
-                    case Exchange.BYE:
+                    case BYE:
                         System.out.println("Client "+ this.c.getUuid() + " saying goodbye.");
                         dataIn.close();
                         interrupt = true;
                         break;
-                    case Exchange.GETCLIENTS:
+                    case GET_CLIENTS:
                         System.out.println("Client "+ this.c.getUuid() + " asking for clients list.");
                         dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClientsObject()));
                         break;

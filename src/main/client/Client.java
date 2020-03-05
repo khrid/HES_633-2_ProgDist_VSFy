@@ -4,8 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import main.network.Exchange;
-import main.network.NetworkInterfacePerso;
+import main.network.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -39,7 +38,7 @@ public class Client implements Serializable {
     public Client(NetworkInterfacePerso nip) {
         uuid = UUID.randomUUID().toString(); // génération de l'identifiant du client
         address = nip.getAddress(); // récupération de l'adresse IP de la machine
-        System.out.println("Client will use ip " + nip.getIp()); // info utilisateur concernant l'IP
+        System.out.println("Client ip " + nip.getIp()); // info utilisateur concernant l'IP
         System.out.println("Client UUID : " + uuid); // info utilisateur concernant l'id
     }
 
@@ -51,14 +50,14 @@ public class Client implements Serializable {
     public void connectToServer(String serverName) {
         try {
             serverAddress = InetAddress.getByName(serverName); // récupération de l'objet InetAdress pour le serveur
-            System.out.print("Connecting to server " + serverAddress + ":" + port + ". ");
+            System.out.print("Connecting to server " + serverAddress.getHostAddress() + ":" + port + ". ");
             exchangeSocket = new Socket(serverAddress, port); // socket d'échange entre le client et le serveur
             exchangeSocket.setKeepAlive(true); // pour ne pas kill le socket trop vite
             dataIn = new DataInputStream(exchangeSocket.getInputStream()); // flux d'échange - entrée
             dataOut = new DataOutputStream(exchangeSocket.getOutputStream()); // flux d'échange - sortie
-            dataOut.writeUTF(Exchange.HELLO); // on fait le handshake du début
+            dataOut.writeUTF(ExchangeEnum.HELLO.command); // on fait le handshake du début
             dataOut.writeUTF(
-                    new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
+              new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
             System.out.println("Done."); // info utilisateur que la connexion est établie
 
         } catch (IOException e) {
@@ -70,6 +69,7 @@ public class Client implements Serializable {
     public void communicate() {
         Scanner scanner = new Scanner(System.in);
         boolean interrupted = false;
+        listActions();
         while (true) {
             if (interrupted) {
                 break;
@@ -79,28 +79,31 @@ public class Client implements Serializable {
             String action = command.split(" ")[0].toUpperCase();
 
             try {
-                switch (action) {
-                    case Exchange.BYE:
+                switch (ExchangeEnum.valueOf(action)) {
+                    case LIST_ACTIONS:
+                        listActions();
+                        break;
+                    case BYE:
                         System.out.print("Disconnecting from server. ");
                         dataOut.writeUTF(action);
                         interrupted = true;
                         System.out.println("Done.");
                         break;
-                    case Exchange.GETCLIENTS:
+                    case GET_CLIENTS:
                         System.out.print("Getting list of server's clients. ");
                         dataOut.writeUTF(action);
                         String ret = dataIn.readUTF();
                         knownClients = new Gson()
-                                .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
-                                }.getType());
+                          .fromJson(new JsonReader(new StringReader(ret)), new TypeToken<List<Client>>() {
+                          }.getType());
                         //System.out.println(knownClients.size());
                         System.out.println("Done.");
                         break;
-                    case Exchange.LISTFILES:
+                    case LIST_FILES:
                         if (knownClients.size() > 0) {
                             for (Client c : knownClients) {
-                                System.out.println("Client " + c.getUuid() + " / IP "+c.getIp()+" : ");
-                                if(c.getFiles().size() > 0) {
+                                System.out.println("Client " + c.getUuid() + " / IP " + c.getIp() + " : ");
+                                if (c.getFiles().size() > 0) {
                                     for (String s : c.getFiles()) {
                                         System.out.println("\t" + s);
                                     }
@@ -109,10 +112,12 @@ public class Client implements Serializable {
                                 }
                             }
                         } else {
-                            System.out.println("No known clients. (Have you launched the " + Exchange.GETCLIENTS + " command?)");
+                            System.out.println(
+                              "No known clients. (Have you launched the " + ExchangeEnum.GET_CLIENTS.command
+                                + " command?)");
                         }
                         break;
-                    case "IP":
+                    /*case "IP":
                         String param = command.split(" ")[1];
                         for (Client c : knownClients) {
                             if (c.getUuid().equalsIgnoreCase(param)) {
@@ -121,11 +126,18 @@ public class Client implements Serializable {
                                 //System.out.println("No known clients with UUID "+param);
                             }
                         }
+                        break;*/
+                    default:
+                        System.out.println("Action unkown.");
+                        listActions();
                         break;
                 }
             } catch (IOException e) {
                 System.out.println("Lost connection with the server.");
                 System.exit(-1);
+            } catch (IllegalArgumentException iae) {
+                System.out.println("Action unkown.");
+                listActions();
             }
 
         }
@@ -141,6 +153,13 @@ public class Client implements Serializable {
 
     public String getIp() {
         return address.getHostAddress();
+    }
+
+    public void listActions() {
+        System.out.println("List of possible actions (not case sensitive) : ");
+        for (String s : ExchangeEnum.getAvailableActions()) {
+            System.out.println(s);
+        }
     }
 
     public void scanFolder(String base_dir) {
