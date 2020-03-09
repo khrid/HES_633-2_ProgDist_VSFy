@@ -9,11 +9,13 @@ public enum ExchangeEnum {
     BYE("BYE", false, "BYE - Terminate connection with the server"),
     GET_CLIENTS("GET_CLIENTS", false, "GET_CLIENTS - Get server's clients list"),
     LIST_FILES("LIST_FILES", false, "LIST_FILES - List client's available files to stream"),
-    LIST_ACTIONS("LIST_ACTIONS", false, "LIST_ACTIONS - List available actions");
+    LIST_ACTIONS("LIST_ACTIONS", false, "LIST_ACTIONS - List available actions"),
+    CONNECT("CONNECT", false, "CONNECT - Connects to another client");
 
     public final String command;
     public final boolean technical;
     public final String description;
+
 
     ExchangeEnum(String code, boolean technical, String description) {
         this.command = code;

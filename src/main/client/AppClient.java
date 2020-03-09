@@ -1,22 +1,15 @@
 package main.client;
 
 import main.network.*;
-import main.server.Server;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Scanner;
+import java.net.ServerSocket;
 
 public class AppClient {
 
     public static void main(String[] args) {
         NetworkInterfacePerso nip;
         String serverIp = "172.16.41.134"; //192.168.2.223
-        Scanner scanner = new Scanner(System.in);
-        boolean interrupted = false;
+        ServerSocket mySkServer;
         String BASE_DIR = "/tmp/vsfy";
 
         System.out.println("---------------\n" +
@@ -27,9 +20,11 @@ public class AppClient {
         nip = nt.interfaceChooser();
         Client c = new Client(nip);
         c.scanFolder(BASE_DIR);
+        if(c.getFiles().size() > 0) {
+            c.startP2PServer();
+        }
+        System.out.println(c.getP2pPort());
         c.connectToServer(serverIp);
         c.communicate();
-
-
     }
 }

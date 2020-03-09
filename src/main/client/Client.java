@@ -8,6 +8,7 @@ import main.network.*;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -16,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Client implements Serializable {
+
+    public static final long serialVersionUID = 42L;
 
     private String uuid; // identifiant du client, pour s'en sortir quand on lance plusieurs clients sur le même PC
 
@@ -35,11 +38,17 @@ public class Client implements Serializable {
 
     private Collection<String> files = new ArrayList<>(); // liste des fichiers que le client peut mettre à dispo
 
+    private int p2pPort;
+
+    transient private DataInputStream p2pDataIn; // pour les données venant du socket
+
+    transient private DataOutputStream p2pDataOut; // pour les données sortant vers le socket
+
+    transient private Socket p2pExchangeSocket;
+
     public Client(NetworkInterfacePerso nip) {
-        uuid = UUID.randomUUID().toString(); // génération de l'identifiant du client
         address = nip.getAddress(); // récupération de l'adresse IP de la machine
         System.out.println("Client ip " + nip.getIp()); // info utilisateur concernant l'IP
-        System.out.println("Client UUID : " + uuid); // info utilisateur concernant l'id
     }
 
     /**
@@ -52,13 +61,14 @@ public class Client implements Serializable {
             serverAddress = InetAddress.getByName(serverName); // récupération de l'objet InetAdress pour le serveur
             System.out.print("Connecting to server " + serverAddress.getHostAddress() + ":" + port + ". ");
             exchangeSocket = new Socket(serverAddress, port); // socket d'échange entre le client et le serveur
-            exchangeSocket.setKeepAlive(true); // pour ne pas kill le socket trop vite
             dataIn = new DataInputStream(exchangeSocket.getInputStream()); // flux d'échange - entrée
             dataOut = new DataOutputStream(exchangeSocket.getOutputStream()); // flux d'échange - sortie
             dataOut.writeUTF(ExchangeEnum.HELLO.command); // on fait le handshake du début
             dataOut.writeUTF(
               new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
+            this.uuid = dataIn.readUTF();
             System.out.println("Done."); // info utilisateur que la connexion est établie
+            System.out.println("Got my UUID from server : " + this.uuid);
 
         } catch (IOException e) {
             System.out.println("Could not establish a connection with the server.");
@@ -100,15 +110,18 @@ public class Client implements Serializable {
                         System.out.println("Done.");
                         break;
                     case LIST_FILES:
-                        if (knownClients.size() > 0) {
+                        if (knownClients.size() > 1) { // supérieur à 1 pcq le serveur renvoie le client lui même
+                            // TODO adapter le renvoi du serveur pour qu'il ne retourne pas le client
                             for (Client c : knownClients) {
-                                System.out.println("Client " + c.getUuid() + " / IP " + c.getIp() + " : ");
-                                if (c.getFiles().size() > 0) {
-                                    for (String s : c.getFiles()) {
-                                        System.out.println("\t" + s);
+                                if (!c.getUuid().equalsIgnoreCase(this.getUuid())) {
+                                    System.out.println("Client " + c.getUuid() + " - IP " + c.getIp() + ":"+c.getP2pPort()+" : ");
+                                    if (c.getFiles().size() > 0) {
+                                        for (String s : c.getFiles()) {
+                                            System.out.println("\t" + s);
+                                        }
+                                    } else {
+                                        System.out.println("\tNothing to share");
                                     }
-                                } else {
-                                    System.out.println("\tNothing to share");
                                 }
                             }
                         } else {
@@ -117,16 +130,27 @@ public class Client implements Serializable {
                                 + " command?)");
                         }
                         break;
-                    /*case "IP":
-                        String param = command.split(" ")[1];
+                    case CONNECT: // TODO changer pour qqch comme PLAY et demander le client cible, et le fichier
+                        System.out.print("Enter client UUID : ");
+                        String target = scanner.nextLine();
+                        Client client = null;
                         for (Client c : knownClients) {
-                            if (c.getUuid().equalsIgnoreCase(param)) {
-                                System.out.println(c.getIp());
-                            } else {
-                                //System.out.println("No known clients with UUID "+param);
+                            if (c.getUuid().equalsIgnoreCase(target)) {
+                                client = c;
                             }
                         }
-                        break;*/
+                        if (client != null) {
+                            System.out.println("Matching client found, connecting.");
+                            serverAddress = InetAddress
+                              .getByName(client.getIp()); // récupération de l'objet InetAdress pour le serveur
+                            System.out
+                              .print("Connecting to server " + client.getIp() + ":" + client.getP2pPort() + ". ");
+                            p2pExchangeSocket = new Socket(serverAddress,
+                              client.getP2pPort()); // socket d'échange entre le client et le serveur
+                        } else {
+                            System.out.println("No client with UUID " + target);
+                        }
+                        break;
                     default:
                         System.out.println("Action unkown.");
                         listActions();
@@ -143,12 +167,20 @@ public class Client implements Serializable {
         }
     }
 
+    public int getP2pPort() {
+        return this.p2pPort;
+    }
+
     public Collection<String> getFiles() {
         return files;
     }
 
     public String getUuid() {
         return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getIp() {
@@ -179,6 +211,18 @@ public class Client implements Serializable {
             }
         } else {
             System.out.println("Directory \"" + base_dir + "\" does not exist. Carrying on.");
+        }
+    }
+
+    public void startP2PServer() {
+        try {
+            ServerSocket p2pSocket = new ServerSocket(0, 10, address);
+            this.p2pPort = p2pSocket.getLocalPort();
+            System.out.println(p2pPort);
+            Thread t = new Thread(new AcceptClient(p2pSocket));
+            t.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -52,7 +52,7 @@ public class Server {
                 exchangeSocket = listeningSocket.accept();
                 DataInputStream dataIn = new DataInputStream(exchangeSocket.getInputStream());
                 DataOutputStream dataOut = new DataOutputStream(exchangeSocket.getOutputStream());
-                ClientHandler t = new ClientHandler(this, exchangeSocket, dataIn, dataOut);
+                Thread t = new Thread(new ClientHandler(this, exchangeSocket, dataIn, dataOut));
                 System.out.println("New connection established, assigning new thread");
                 t.start();
             } catch (Exception e) {

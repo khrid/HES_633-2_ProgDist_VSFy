@@ -12,8 +12,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.UUID;
 
-public class ClientHandler extends Thread {
+public class ClientHandler implements Runnable {
 
     private Server server;
 
@@ -53,9 +54,10 @@ public class ClientHandler extends Thread {
                 switch (ExchangeEnum.valueOf(input)) {
                     case HELLO:
                         System.out.println("New client saying hello.");
-                        //this.server.registerClient(this.name);
                         c = new Gson().fromJson(new JsonReader(new StringReader(dataIn.readUTF())), Client.class);
+                        c.setUuid(UUID.randomUUID().toString()); // génération de l'identifiant du client
                         this.server.registerClient(c);
+                        dataOut.writeUTF(c.getUuid());
                         break;
                     case BYE:
                         System.out.println("Client "+ this.c.getUuid() + " saying goodbye.");
