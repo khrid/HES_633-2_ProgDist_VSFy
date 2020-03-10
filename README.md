@@ -22,7 +22,7 @@ The server and client applications should be coded in java based on the librarie
 - The server must be able to: 
   - [x] Register new clients 
   - [x] Maintain a list of registered clients (and the files they can stream) 
-  - [ ] Give back a client IP and its list of audio file to another client
+  - [x] Give back a client IP and its list of audio file to another client
   - [x] Accept multiple clients simultaneously (use threads). 
 - The server must be able to write logs:
   - [ ] On a file 
@@ -39,9 +39,9 @@ You can use command words to discuss between the client and the server or use di
  - [x] The client should be able to give its list of file to the server 
  - [x] The client should be able to give its IP address 
  - [x] The client should be able to get a list of clients with their available audio files 
- - [ ] The client should be able to ask for another client IP address 
- - [ ] The client should be able to connect to another client and ask to stream one file 
- - [ ] The client should be able to accept a network connection from another client and stream the selected file
+ - [x] The client should be able to ask for another client IP address 
+ - [x] The client should be able to connect to another client and ask to stream one file 
+ - [x] The client should be able to accept a network connection from another client and stream the selected file
  - [ ] The client should be able to play the audio stream  
  
  ### Possible add-ons
