@@ -4,7 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import main.network.*;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
+import main.network.ExchangeEnum;
+import main.network.NetworkInterfacePerso;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -15,8 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
 
 public class Client implements Serializable {
 
@@ -48,6 +51,10 @@ public class Client implements Serializable {
 
     transient private Socket p2pExchangeSocket;
 
+    transient private MediaPlayer mp;
+
+    transient private String nowPlaying;
+
     public Client(NetworkInterfacePerso nip) {
         address = nip.getAddress(); // récupération de l'adresse IP de la machine
         System.out.println("Client ip " + nip.getIp()); // info utilisateur concernant l'IP
@@ -67,7 +74,7 @@ public class Client implements Serializable {
             dataOut = new DataOutputStream(exchangeSocket.getOutputStream()); // flux d'échange - sortie
             dataOut.writeUTF(ExchangeEnum.HELLO.command); // on fait le handshake du début
             dataOut.writeUTF(
-              new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
+                    new GsonBuilder().create().toJson(this)); // on s'envoie au serveur pour qu'il ait les infos du client
             this.uuid = dataIn.readUTF();
             System.out.println("Done."); // info utilisateur que la connexion est établie
             System.out.println("Got my UUID from server : " + this.uuid);
@@ -107,60 +114,99 @@ public class Client implements Serializable {
                     case LIST_FILES:
                         listFiles();
                         break;
-                    case PLAY:
-                        getClients();
-                        listFiles();
-                        System.out.print("Enter client UUID : ");
-                        String target = scanner.nextLine();
-                        Client client = null;
-                        for (Client c : knownClients) {
-                            if (c.getUuid().equalsIgnoreCase(target) && !this.getUuid().equalsIgnoreCase(target)) {
-                                client = c;
-                            }
+                    case STOP:
+                        if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PLAYING)) {
+                            System.out.println("Stopped the player.");
+                            mp.stop();
+                        } else {
+                            System.out.println("Media player not active.");
                         }
-                        if (client != null) {
-                            System.out.println("Available files for selected client : ");
-                            for (File f : client.getFiles()) {
-                                System.out.println("\t" + f.getName());
-                            }
-                            System.out.print("Select file to play : ");
-                            target = scanner.nextLine();
-                            boolean exists = false;
-                            for (File f : client.getFiles()) {
-                                if (f.getName().equalsIgnoreCase(target)) {
-                                    exists = true;
-                                    break;
+                        break;
+                    case NOW_PLAYING:
+                        if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PLAYING)) {
+                            int current = (int) mp.getCurrentTime().toSeconds();
+                            int duration = (int) mp.getMedia().getDuration().toSeconds();
+                            System.out.println("Now playing " + nowPlaying + ", " + current + "s/" + duration + "s\n" +
+                                    "from " + p2pExchangeSocket.getInetAddress().getHostAddress());
+                        } else {
+                            System.out.println("Media player not active.");
+                        }
+                        break;
+                    case PLAY:
+                        scanFolder("/tmp/vsfy");
+                        getClients();
+                        if (!knownClients.isEmpty()) {
+                            listFiles();
+                            System.out.print("Enter client UUID : ");
+                            String target = scanner.nextLine();
+                            Client client = null;
+                            for (Client c : knownClients) {
+                                if (c.getUuid().equalsIgnoreCase(target) && !this.getUuid().equalsIgnoreCase(target)) {
+                                    client = c;
                                 }
                             }
-                            if (exists) { // si le client possède bien le fichier demandé
-                                serverAddress = InetAddress
-                                  .getByName(client.getIp()); // récupération de l'objet InetAdress pour le serveur
-                                System.out
-                                  .print("Connecting to client " + client.getIp() + ":" + client.getP2pPort() + ". ");
-                                p2pExchangeSocket = new Socket(serverAddress, client.getP2pPort());
-                                System.out.println("Done.");
-                                p2pDataIn = new DataInputStream(
-                                  p2pExchangeSocket.getInputStream()); // flux d'échange - entrée
-                                p2pDataOut = new DataOutputStream(
-                                  p2pExchangeSocket.getOutputStream()); // flux d'échange - sortie
-                                p2pDataOut.writeUTF(target);
-                                System.out.println("Getting file content.");
-                                //Thread.sleep(30000);
-                                FileOutputStream fos = new FileOutputStream("C:\\tmp\\vsfy\\out\\test.txt");
-                                byte[] buffer = new byte[1024];
-                                int count;
-                                while ((count = p2pDataIn.read(buffer)) >= 0) {
-                                    fos.write(buffer, 0, count);
+                            if (client != null) {
+                                System.out.println("Available files for selected client : ");
+                                for (File f : client.getFiles()) {
+                                    System.out.println("\t" + f.getName());
                                 }
-                                fos.close();
-                                System.out.print("File transmitted from client, closing connection. ");
-                                p2pExchangeSocket.close();
-                                System.out.println("Done.");
+                                System.out.print("Select file to play : ");
+                                target = scanner.nextLine();
+                                File fTarget = null;
+                                boolean exists = false;
+                                for (File f : client.getFiles()) {
+                                    if (f.getName().equalsIgnoreCase(target)) {
+                                        fTarget = f;
+                                        break;
+                                    }
+                                }
+                                if (fTarget != null) { // si le client possède bien le fichier demandé
+                                    serverAddress = InetAddress
+                                            .getByName(client.getIp()); // récupération de l'objet InetAdress pour le serveur
+                                    //System.out
+                                    //        .print("Connecting to client " + client.getIp() + ":" + client.getP2pPort() + ". ");
+                                    p2pExchangeSocket = new Socket(serverAddress, client.getP2pPort());
+                                    //System.out.println("Done.");
+                                    p2pDataIn = new DataInputStream(
+                                            p2pExchangeSocket.getInputStream()); // flux d'échange - entrée
+                                    p2pDataOut = new DataOutputStream(
+                                            p2pExchangeSocket.getOutputStream()); // flux d'échange - sortie
+                                    p2pDataOut.writeUTF(target);
+                                    //System.out.println("Getting file content.");
+                                    String ext = target.substring(target.lastIndexOf('.') + 1);
+                                    JFXPanel fxPanel = new JFXPanel();
+
+                                    InputStream bufferedIn = new BufferedInputStream(p2pDataIn);
+                                    File temp = null;
+                                    try {
+                                        temp = File.createTempFile("tmp", "." + ext, null);
+                                        temp.deleteOnExit();
+                                        FileOutputStream fos = new FileOutputStream(temp);
+                                        byte[] buffer = new byte[8192];
+                                        int count;
+                                        while ((count = p2pDataIn.read(buffer)) >= 0) {
+                                            fos.write(buffer, 0, count);
+                                        }
+                                        fos.close();
+                                        Media m = new Media(temp.toURI().toURL().toString());
+                                        //Media m = new Media(new File("/tmp/vsfy/acdc.mp3").toURI().toString());
+                                        mp = new MediaPlayer(m);
+                                        //mp.setCycleCount(MediaPlayer.INDEFINITE);
+                                        System.out.println("\uD83C\uDFB6 Now playing " + target + " \uD83C\uDFB6");
+                                        mp.play();
+                                        nowPlaying = target;
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    System.out.println("Client does not have that file.");
+                                }
                             } else {
-                                System.out.println("Client does not have that file.");
+                                System.out.println("Client not found.");
                             }
                         } else {
-                            System.out.println("Client not found.");
+                            System.out.println("No other clients to connect with.");
                         }
                         break;
                     default:
@@ -170,6 +216,7 @@ public class Client implements Serializable {
                 }
             } catch (IOException e) {
                 System.out.println("Lost connection with the server.");
+                e.printStackTrace();
                 System.exit(-1);
             } catch (IllegalArgumentException iae) {
                 System.out.println("Action unkown.");
@@ -196,7 +243,7 @@ public class Client implements Serializable {
             }
         } else {
             System.out
-              .println("No known clients. (Have you launched the " + ExchangeEnum.GET_CLIENTS.command + " command?)");
+                    .println("No known clients. (Have you launched the " + ExchangeEnum.GET_CLIENTS.command + " command?)");
         }
     }
 

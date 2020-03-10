@@ -9,7 +9,7 @@ public class AppClient {
 
     public static void main(String[] args) {
         NetworkInterfacePerso nip;
-        String serverIp = "172.16.41.134"; //192.168.2.223
+        String serverIp = "192.168.2.223"; //192.168.2.223 - 172.16.41.134
         ServerSocket mySkServer;
         String BASE_DIR = "/tmp/vsfy";
 

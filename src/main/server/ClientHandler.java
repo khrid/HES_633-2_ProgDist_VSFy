@@ -37,12 +37,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
         boolean interrupt = false;
         String input;
         while (true) {
             if (interrupt) {
-                if(this.server != null) this.server.removeClient(c);
+                if (this.server != null) this.server.removeClient(c);
                 break;
             }
             try {
@@ -64,7 +65,7 @@ public class ClientHandler implements Runnable {
                             break;
                         case GET_CLIENTS:
                             System.out.println("Client " + this.c.getUuid() + " asking for clients list.");
-                            dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClientsObject()));
+                            dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClients()));
                             break;
                         default:
                             break;
@@ -74,9 +75,9 @@ public class ClientHandler implements Runnable {
                     //System.out.println(input);
 
                     int count;
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[8192];
 
-                    BufferedInputStream in = new BufferedInputStream(new FileInputStream("C:\\tmp\\vsfy\\"+input));
+                    BufferedInputStream in = new BufferedInputStream(new FileInputStream("/tmp/vsfy/" + input));
                     while ((count = in.read(buffer)) > 0) {
                         dataOut.write(buffer, 0, count);
                     }
