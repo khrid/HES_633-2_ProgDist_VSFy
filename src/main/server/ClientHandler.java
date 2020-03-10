@@ -6,10 +6,7 @@ import com.google.gson.stream.JsonReader;
 import main.client.Client;
 import main.network.ExchangeEnum;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.UUID;
@@ -45,35 +42,48 @@ public class ClientHandler implements Runnable {
         String input;
         while (true) {
             if (interrupt) {
-                this.server.removeClient(c);
+                if(this.server != null) this.server.removeClient(c);
                 break;
             }
             try {
-                input = dataIn.readUTF();
-                //System.out.println("Data received : " + input);
-                switch (ExchangeEnum.valueOf(input)) {
-                    case HELLO:
-                        System.out.println("New client saying hello.");
-                        c = new Gson().fromJson(new JsonReader(new StringReader(dataIn.readUTF())), Client.class);
-                        c.setUuid(UUID.randomUUID().toString()); // génération de l'identifiant du client
-                        this.server.registerClient(c);
-                        dataOut.writeUTF(c.getUuid());
-                        break;
-                    case BYE:
-                        System.out.println("Client "+ this.c.getUuid() + " saying goodbye.");
-                        dataIn.close();
-                        interrupt = true;
-                        break;
-                    case GET_CLIENTS:
-                        System.out.println("Client "+ this.c.getUuid() + " asking for clients list.");
-                        dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClientsObject()));
-                        break;
-                    default:
-                        break;
-                }
+                if (this.server != null) { // on communique avec le serveur
+                    input = dataIn.readUTF();
+                    //System.out.println("Data received : " + input);
+                    switch (ExchangeEnum.valueOf(input)) {
+                        case HELLO:
+                            System.out.println("New client saying hello.");
+                            c = new Gson().fromJson(new JsonReader(new StringReader(dataIn.readUTF())), Client.class);
+                            c.setUuid(UUID.randomUUID().toString()); // génération de l'identifiant du client
+                            this.server.registerClient(c);
+                            dataOut.writeUTF(c.getUuid());
+                            break;
+                        case BYE:
+                            System.out.println("Client " + this.c.getUuid() + " saying goodbye.");
+                            dataIn.close();
+                            interrupt = true;
+                            break;
+                        case GET_CLIENTS:
+                            System.out.println("Client " + this.c.getUuid() + " asking for clients list.");
+                            dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClientsObject()));
+                            break;
+                        default:
+                            break;
+                    }
+                } else { // on communique avec un client (p2p)
+                    input = dataIn.readUTF();
+                    //System.out.println(input);
 
+                    int count;
+                    byte[] buffer = new byte[1024];
+
+                    BufferedInputStream in = new BufferedInputStream(new FileInputStream("C:\\tmp\\vsfy\\"+input));
+                    while ((count = in.read(buffer)) > 0) {
+                        dataOut.write(buffer, 0, count);
+                    }
+                    exchangeSocket.close();
+                }
             } catch (IOException e) {
-                System.out.println("Lost connection with "+ this.c.getUuid() + ", killing thread");
+                //System.out.println("Lost connection with " + this.c.getUuid() + ", killing thread");
                 try {
                     dataIn.close();
                 } catch (IOException ex) {
