@@ -10,6 +10,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 import main.network.ExchangeEnum;
 import main.network.NetworkInterfacePerso;
+import main.tools.Tools;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -24,6 +25,8 @@ import java.util.*;
 public class Client implements Serializable {
 
     public static final long serialVersionUID = 42L;
+
+    private static final String BASE_DIR = "/tmp/vsfy";
 
     private String uuid; // identifiant du client, pour s'en sortir quand on lance plusieurs clients sur le même PC
 
@@ -91,28 +94,21 @@ public class Client implements Serializable {
         listActions();
         while (true) {
             if (interrupted) {
+                System.exit(0);
                 break;
             }
             System.out.print("Enter action : ");
-            String command = scanner.nextLine();
-            String action = command.split(" ")[0].toUpperCase();
-
+            String command = scanner.nextLine().toUpperCase();
             try {
-                switch (ExchangeEnum.valueOf(action)) {
+                switch (ExchangeEnum.valueOf(command)) {
                     case LIST_ACTIONS:
                         listActions();
                         break;
                     case BYE:
                         System.out.print("Disconnecting from server. ");
-                        dataOut.writeUTF(action);
+                        dataOut.writeUTF(command);
                         interrupted = true;
                         System.out.println("Done.");
-                        break;
-                    case GET_CLIENTS:
-                        getClients();
-                        break;
-                    case LIST_FILES:
-                        listFiles();
                         break;
                     case STOP:
                         if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PLAYING)) {
@@ -122,22 +118,37 @@ public class Client implements Serializable {
                             System.out.println("Media player not active.");
                         }
                         break;
+                    case PAUSE:
+                        if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PLAYING)) {
+                            System.out.println("Paused the player.");
+                            mp.pause();
+                        } else {
+                            System.out.println("Media player not active.");
+                        }
+                        break;
+                    case RESUME:
+                        if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PAUSED)) {
+                            System.out.println("Resumed the player.");
+                            mp.play();
+                        } else {
+                            System.out.println("Media player not active/paused.");
+                        }
+                        break;
                     case NOW_PLAYING:
                         if (mp != null && mp.getStatus().equals(MediaPlayer.Status.PLAYING)) {
                             int current = (int) mp.getCurrentTime().toSeconds();
                             int duration = (int) mp.getMedia().getDuration().toSeconds();
-                            System.out.println("Now playing " + nowPlaying + ", " + current + "s/" + duration + "s\n" +
-                                    "from " + p2pExchangeSocket.getInetAddress().getHostAddress());
+                            System.out.println("Now playing " + nowPlaying + ", " + Tools.secondsToMmss(current) + " / " + Tools.secondsToMmss(duration));
                         } else {
                             System.out.println("Media player not active.");
                         }
                         break;
                     case PLAY:
-                        scanFolder("/tmp/vsfy");
+                        scanFolder();
                         getClients();
                         if (!knownClients.isEmpty()) {
                             listFiles();
-                            System.out.print("Enter client UUID : ");
+                            System.out.print("Enter target UUID : ");
                             String target = scanner.nextLine();
                             Client client = null;
                             for (Client c : knownClients) {
@@ -163,16 +174,12 @@ public class Client implements Serializable {
                                 if (fTarget != null) { // si le client possède bien le fichier demandé
                                     serverAddress = InetAddress
                                             .getByName(client.getIp()); // récupération de l'objet InetAdress pour le serveur
-                                    //System.out
-                                    //        .print("Connecting to client " + client.getIp() + ":" + client.getP2pPort() + ". ");
                                     p2pExchangeSocket = new Socket(serverAddress, client.getP2pPort());
-                                    //System.out.println("Done.");
                                     p2pDataIn = new DataInputStream(
                                             p2pExchangeSocket.getInputStream()); // flux d'échange - entrée
                                     p2pDataOut = new DataOutputStream(
                                             p2pExchangeSocket.getOutputStream()); // flux d'échange - sortie
                                     p2pDataOut.writeUTF(target);
-                                    //System.out.println("Getting file content.");
                                     String ext = target.substring(target.lastIndexOf('.') + 1);
                                     JFXPanel fxPanel = new JFXPanel();
 
@@ -189,7 +196,6 @@ public class Client implements Serializable {
                                         }
                                         fos.close();
                                         Media m = new Media(temp.toURI().toURL().toString());
-                                        //Media m = new Media(new File("/tmp/vsfy/acdc.mp3").toURI().toString());
                                         mp = new MediaPlayer(m);
                                         //mp.setCycleCount(MediaPlayer.INDEFINITE);
                                         System.out.println("\uD83C\uDFB6 Now playing " + target + " \uD83C\uDFB6");
@@ -216,9 +222,9 @@ public class Client implements Serializable {
                 }
             } catch (IOException e) {
                 System.out.println("Lost connection with the server.");
-                e.printStackTrace();
                 System.exit(-1);
             } catch (IllegalArgumentException iae) {
+                iae.printStackTrace();
                 System.out.println("Action unkown.");
                 listActions();
             }
@@ -227,23 +233,17 @@ public class Client implements Serializable {
     }
 
     private void listFiles() {
-        if (knownClients.size() > 1) { // supérieur à 1 pcq le serveur renvoie le client lui même
-            // TODO adapter le renvoi du serveur pour qu'il ne retourne pas le client
-            for (Client c : knownClients) {
-                if (!c.getUuid().equalsIgnoreCase(this.getUuid())) {
-                    System.out.println("Client " + c.getUuid()/* + " - IP " + c.getIp() + ":"+c.getP2pPort()*/ + " : ");
-                    if (c.getFiles().size() > 0) {
-                        for (File f : c.getFiles()) {
-                            System.out.println("\t" + f.getName() + " - " + f.length() / 1024 + "ko");
-                        }
-                    } else {
-                        System.out.println("\tNothing to share");
+        for (Client c : knownClients) {
+            if (!c.getUuid().equalsIgnoreCase(this.getUuid())) {
+                System.out.println("Client " + c.getUuid()/* + " - IP " + c.getIp() + ":"+c.getP2pPort()*/ + " : ");
+                if (c.getFiles().size() > 0) {
+                    for (File f : c.getFiles()) {
+                        System.out.println("\t" + f.getName() + " - " + f.length() / 1024 + "ko - ");
                     }
+                } else {
+                    System.out.println("\tNothing to share");
                 }
             }
-        } else {
-            System.out
-                    .println("No known clients. (Have you launched the " + ExchangeEnum.GET_CLIENTS.command + " command?)");
         }
     }
 
@@ -270,12 +270,12 @@ public class Client implements Serializable {
     public void listActions() {
         System.out.println("List of possible actions (not case sensitive) : ");
         for (String s : ExchangeEnum.getAvailableActions()) {
-            System.out.println(s);
+            System.out.print(s + " - ");
         }
+        System.out.println("");
     }
 
     private void getClients() {
-        System.out.print("Getting list of server's clients. ");
         try {
             dataOut.writeUTF(ExchangeEnum.GET_CLIENTS.command);
             String ret = dataIn.readUTF();
@@ -284,16 +284,14 @@ public class Client implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //System.out.println(knownClients.size());
-        System.out.println("Done.");
     }
 
-    public void scanFolder(String base_dir) {
-        Path path = Paths.get(base_dir);
+    public void scanFolder() {
+        Path path = Paths.get(BASE_DIR);
         if (Files.exists(path)) { // si le répertoire existe
-            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(base_dir))) {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(BASE_DIR))) {
                 if (directoryStream.iterator().hasNext()) { // si le répertoire a des fichiers dedans
-                    File folder = new File(base_dir);
+                    File folder = new File(BASE_DIR);
                     for (File f : Objects.requireNonNull(folder.listFiles())) {
                         if (f.isFile()) {
                             files.add(f);
@@ -301,10 +299,10 @@ public class Client implements Serializable {
                     }
                 }
             } catch (IOException e) {
-                System.out.println("No files to share in directory \"" + base_dir + "\"");
+                System.out.println("No files to share in directory \"" + BASE_DIR + "\"");
             }
         } else {
-            System.out.println("Directory \"" + base_dir + "\" does not exist. Carrying on.");
+            System.out.println("Directory \"" + BASE_DIR + "\" does not exist. Carrying on.");
         }
     }
 

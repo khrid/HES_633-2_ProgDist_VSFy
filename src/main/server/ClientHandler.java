@@ -9,6 +9,7 @@ import main.network.ExchangeEnum;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class ClientHandler implements Runnable {
@@ -65,7 +66,13 @@ public class ClientHandler implements Runnable {
                             break;
                         case GET_CLIENTS:
                             System.out.println("Client " + this.c.getUuid() + " asking for clients list.");
-                            dataOut.writeUTF(new GsonBuilder().create().toJson(this.server.getClients()));
+                            ArrayList<Client> clientsWithoutCurrent = new ArrayList<>();
+                            for (Client client :
+                                    server.getClients()) {
+                                if(!c.getUuid().equalsIgnoreCase(client.getUuid()))
+                                    clientsWithoutCurrent.add(client);
+                            }
+                            dataOut.writeUTF(new GsonBuilder().create().toJson(clientsWithoutCurrent));
                             break;
                         default:
                             break;

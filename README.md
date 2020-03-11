@@ -42,11 +42,11 @@ You can use command words to discuss between the client and the server or use di
  - [x] The client should be able to ask for another client IP address 
  - [x] The client should be able to connect to another client and ask to stream one file 
  - [x] The client should be able to accept a network connection from another client and stream the selected file
- - [ ] The client should be able to play the audio stream  
+ - [x] The client should be able to play the audio stream  
  
  ### Possible add-ons
  The features described hereafter are examples of possible add-on that could be developed according to the progress of your project: 
-- A client can handle stream audio files to multiple clients simultaneously 
-- A client can handle video files as well
-- Your imagination (must be related to java socket)
+- [x] A client can handle stream audio files to multiple clients simultaneously 
+- [ ] A client can handle video files as well
+- [ ] Your imagination (must be related to java socket)
 

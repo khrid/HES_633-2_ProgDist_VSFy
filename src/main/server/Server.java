@@ -71,7 +71,7 @@ public class Server {
         System.out.println("Removed client " + client.getUuid() + ". Total clients : " + clients.size());
     }
 
-    public Object getClients() {
+    public ArrayList<Client> getClients() {
         return clients;
     }
 }
