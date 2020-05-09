@@ -11,6 +11,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Server {
 
     private InetAddress address;
@@ -25,22 +28,26 @@ public class Server {
 
     private ArrayList<Client> clients = new ArrayList<>();
 
+    public static Logger logger = LogManager.getLogger(Server.class);
+
+
     public Server(NetworkInterfacePerso nip)  {
         address = nip.getAddress();
     }
 
     public void start() {
+        logger.debug("Starting server");
         try {
             listeningSocket = new ServerSocket(port, buffer, address);
-            System.out.println("Used IP address : " + listeningSocket.getInetAddress().getHostAddress());
-            System.out.println("Listening port  : " + listeningSocket.getLocalPort());
+            logger.info("Used IP address : " + listeningSocket.getInetAddress().getHostAddress());
+            logger.info("Listening port  : " + listeningSocket.getLocalPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void listen() {
-        System.out.println("Server is now listening for connections...");
+        logger.info("Server is now listening for connections...");
 
         while (true) {
             try {
@@ -48,7 +55,7 @@ public class Server {
                 DataInputStream dataIn = new DataInputStream(exchangeSocket.getInputStream());
                 DataOutputStream dataOut = new DataOutputStream(exchangeSocket.getOutputStream());
                 Thread t = new Thread(new ClientHandler(this, exchangeSocket, dataIn, dataOut));
-                System.out.println("New connection established, assigning new thread");
+                logger.info("New connection established, assigning new thread");
                 t.start();
             } catch (Exception e) {
                 try {
@@ -63,12 +70,12 @@ public class Server {
 
     public void registerClient(Client client) {
         clients.add(client);
-        System.out.println("Registered client " + client.getUuid() + " with ip address " + client.getIp()+". Total clients : "+ clients.size());
+        logger.info("Registered client " + client.getUuid() + " with ip address " + client.getIp()+". Total clients : "+ clients.size());
     }
 
     public void removeClient(Client client) {
         clients.remove(client);
-        System.out.println("Removed client " + client.getUuid() + ". Total clients : " + clients.size());
+        logger.info("Removed client " + client.getUuid() + ". Total clients : " + clients.size());
     }
 
     public ArrayList<Client> getClients() {
