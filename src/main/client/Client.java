@@ -181,7 +181,7 @@ public class Client implements Serializable {
                                             p2pExchangeSocket.getOutputStream()); // flux d'échange - sortie
                                     p2pDataOut.writeUTF(target);
                                     String ext = target.substring(target.lastIndexOf('.') + 1);
-                                    JFXPanel fxPanel = new JFXPanel();
+                                    JFXPanel fxPanel = new JFXPanel(); // utilisé uniquement pour gérer les fichiers audios autre que .wav
 
                                     InputStream bufferedIn = new BufferedInputStream(p2pDataIn);
                                     File temp = null;

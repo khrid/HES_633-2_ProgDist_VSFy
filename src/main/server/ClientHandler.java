@@ -53,19 +53,19 @@ public class ClientHandler implements Runnable {
                     //System.out.println("Data received : " + input);
                     switch (ExchangeEnum.valueOf(input)) {
                         case HELLO:
-                            System.out.println("New client saying hello.");
+                            this.server.logger.info("New client saying hello.");
                             c = new Gson().fromJson(new JsonReader(new StringReader(dataIn.readUTF())), Client.class);
                             c.setUuid(UUID.randomUUID().toString()); // génération de l'identifiant du client
                             this.server.registerClient(c);
                             dataOut.writeUTF(c.getUuid());
                             break;
                         case BYE:
-                            System.out.println("Client " + this.c.getUuid() + " saying goodbye.");
+                            this.server.logger.info("Client " + this.c.getUuid() + " saying goodbye.");
                             dataIn.close();
                             interrupt = true;
                             break;
                         case GET_CLIENTS:
-                            System.out.println("Client " + this.c.getUuid() + " asking for clients list.");
+                            this.server.logger.info("Client " + this.c.getUuid() + " asking for clients list.");
                             ArrayList<Client> clientsWithoutCurrent = new ArrayList<>();
                             for (Client client :
                                     server.getClients()) {
@@ -78,24 +78,31 @@ public class ClientHandler implements Runnable {
                             break;
                     }
                 } else { // on communique avec un client (p2p)
+                    // contient le nom de fichier à streamer
                     input = dataIn.readUTF();
-                    //System.out.println(input);
-
-                    int count;
-                    byte[] buffer = new byte[8192];
-
-                    BufferedInputStream in = new BufferedInputStream(new FileInputStream("/tmp/vsfy/" + input));
-                    while ((count = in.read(buffer)) > 0) {
-                        dataOut.write(buffer, 0, count);
-                    }
+                    // création d'un fichier
+                    File file = new File("/tmp/vsfy/" + input);
+                    // buffer pour le contenu du fichier
+                    byte[] buffer = new byte[(int)file.length()];
+                    // le stream avec le fichier
+                    BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+                    // on écrit dans le buffer
+                    in.read(buffer,0, buffer.length);
+                    // on écrit dans le socket
+                    dataOut.write(buffer, 0, buffer.length);
+                    // on envoie
+                    dataOut.flush();
+                    // on clot le socket
                     exchangeSocket.close();
                 }
             } catch (IOException e) {
-                //System.out.println("Lost connection with " + this.c.getUuid() + ", killing thread");
                 try {
                     dataIn.close();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    this.server.logger.error("Could not close connection gracefuly.");
+                    this.server.logger.error(ex.getMessage());
+                } finally {
+                    this.server.logger.warn("Lost connection with " + this.c.getUuid() + ", killing thread");
                 }
                 //e.printStackTrace();
                 interrupt = true;
