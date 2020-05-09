@@ -20,10 +20,10 @@ The server and client applications should be coded in java based on the librarie
 ## Work to do
 ### Minimal specifications of the server: 
 - The server must be able to: 
-  - [ ] Register new clients 
-  - [ ] Maintain a list of registered clients (and the files they can stream) 
-  - [ ] Give back a client IP and its list of audio file to another client
-  - [ ] Accept multiple clients simultaneously (use threads). 
+  - [x] Register new clients 
+  - [x] Maintain a list of registered clients (and the files they can stream) 
+  - [x] Give back a client IP and its list of audio file to another client
+  - [x] Accept multiple clients simultaneously (use threads). 
 - The server must be able to write logs:
   - [ ] On a file 
   - [ ] The history must be kept (one file per month)
@@ -31,21 +31,22 @@ The server and client applications should be coded in java based on the librarie
      - Info for all the useful operations
     - Warning for all the possible network errors
     - Severe for the exceptions
+
 You can use command words to discuss between the client and the server or use different ports on the server for the client communications 
 
 ### Minimal specifications of the client: 
- - [ ] The client will be able to connect to the server through socket connections 
- - [ ] The client should be able to give its list of file to the server 
- - [ ] The client should be able to give its IP address 
- - [ ] The client should be able to get a list of clients with their available audio files 
- - [ ] The client should be able to ask for another client IP address 
- - [ ] The client should be able to connect to another client and ask to stream one file 
- - [ ] The client should be able to accept a network connection from another client and stream the selected file
- - [ ] The client should be able to play the audio stream  
+ - [x] The client will be able to connect to the server through socket connections 
+ - [x] The client should be able to give its list of file to the server 
+ - [x] The client should be able to give its IP address 
+ - [x] The client should be able to get a list of clients with their available audio files 
+ - [x] The client should be able to ask for another client IP address 
+ - [x] The client should be able to connect to another client and ask to stream one file 
+ - [x] The client should be able to accept a network connection from another client and stream the selected file
+ - [x] The client should be able to play the audio stream  
  
  ### Possible add-ons
  The features described hereafter are examples of possible add-on that could be developed according to the progress of your project: 
-- A client can handle stream audio files to multiple clients simultaneously 
-- A client can handle video files as well
-- Your imagination (must be related to java socket)
+- [x] A client can handle stream audio files to multiple clients simultaneously 
+- [ ] A client can handle video files as well
+- [ ] Your imagination (must be related to java socket)
 
