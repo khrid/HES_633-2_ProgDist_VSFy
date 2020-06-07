@@ -101,8 +101,6 @@ public class ClientHandler implements Runnable {
                 } catch (IOException ex) {
                     this.server.logger.error("Could not close connection gracefuly.");
                     this.server.logger.error(ex.getMessage());
-                } finally {
-                    this.server.logger.warn("Lost connection with " + this.c.getUuid() + ", killing thread");
                 }
                 //e.printStackTrace();
                 interrupt = true;
