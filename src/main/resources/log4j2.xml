@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level [%-10t] [%25c#%-25.25M] : %msg%n" />
+        </Console>
+        <!--<File name="MyFile" fileName="/tmp/vsfy/logs/server.log" append="true">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level [%-10t] [%25c#%-25.25M] : %msg%n"/>
+        </File>-->
+        <RollingFile
+            name="RollingFile" fileName="/tmp/vsfy/logs/server.log"
+            filePattern="/tmp/vsfy/logs/server.%d{MM-YYYY}.log.gz">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level [%-10t] [%25c#%-25.25M] : %msg%n">
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+           <!--><AppenderRef ref="MyFile"/>-->
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
