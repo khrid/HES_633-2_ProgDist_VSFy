@@ -28,6 +28,8 @@ public class Client implements Serializable {
 
     private static final String BASE_DIR = "/tmp/vsfy";
 
+    private static final List<String> EXTENSIONS_ALLOWED = Arrays.asList("mp3","wav","mp4");
+
     private String uuid; // identifiant du client, pour s'en sortir quand on lance plusieurs clients sur le même PC
 
     private InetAddress address; // pour gérer l'adresse IP
@@ -293,7 +295,7 @@ public class Client implements Serializable {
                 if (directoryStream.iterator().hasNext()) { // si le répertoire a des fichiers dedans
                     File folder = new File(BASE_DIR);
                     for (File f : Objects.requireNonNull(folder.listFiles())) {
-                        if (f.isFile()) {
+                        if (f.isFile() && EXTENSIONS_ALLOWED.contains(getFileExtension(f.getName()))) {
                             files.add(f);
                         }
                     }
@@ -304,6 +306,10 @@ public class Client implements Serializable {
         } else {
             System.out.println("Directory \"" + BASE_DIR + "\" does not exist. Carrying on.");
         }
+    }
+
+    private String getFileExtension(String filename) {
+        return Optional.ofNullable(filename).filter(f -> f.contains(".")).map(f -> f.substring(filename.lastIndexOf(".") + 1)).orElse("other");
     }
 
     public void startP2PServer() {
