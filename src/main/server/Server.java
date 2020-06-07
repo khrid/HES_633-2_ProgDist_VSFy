@@ -28,7 +28,8 @@ public class Server {
 
     private ArrayList<Client> clients = new ArrayList<>();
 
-    public static Logger logger = LogManager.getLogger(Server.class);
+    //public static Logger logger = LogManager.getLogger(Server.class);
+    public static Logger logger = LogManager.getLogger();
 
 
     public Server(NetworkInterfacePerso nip)  {

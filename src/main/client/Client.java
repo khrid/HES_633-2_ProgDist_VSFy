@@ -7,7 +7,6 @@ import com.google.gson.stream.JsonReader;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.util.Duration;
 import main.network.ExchangeEnum;
 import main.network.NetworkInterfacePerso;
 import main.tools.Tools;
@@ -212,7 +211,7 @@ public class Client implements Serializable {
                                 System.out.println("Client not found.");
                             }
                         } else {
-                            System.out.println("No other clients to connect with.");
+                            System.out.println("No other clients to connect to.");
                         }
                         break;
                     default:
@@ -224,7 +223,7 @@ public class Client implements Serializable {
                 System.out.println("Lost connection with the server.");
                 System.exit(-1);
             } catch (IllegalArgumentException iae) {
-                iae.printStackTrace();
+                //iae.printStackTrace();
                 System.out.println("Action unkown.");
                 listActions();
             }
