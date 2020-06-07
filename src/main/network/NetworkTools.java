@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Scanner;
 
+/**
+ * Librairie qui regroupe tous les tools relatifs à l'affichage et la sélection des paramètres réseaux
+ */
 public class NetworkTools {
 
     public static Logger logger = LogManager.getLogger(NetworkTools.class);
@@ -23,8 +26,8 @@ public class NetworkTools {
     }
 
     /**
-     * Returns all available interfaces with their name, display name and ip
-     * @return ArrayList with the interfaces found
+     * Retourne toutes les interfaces disponibles avec leur nom système, nom convivial et adresse IP
+     * @return ArrayList d'objets NetworkInterfacePerso contenant les interfaces trouvées
      */
     public ArrayList<NetworkInterfacePerso> getAvalaibleInterfaces() {
         if(log) {
@@ -54,6 +57,11 @@ public class NetworkTools {
         return res;
     }
 
+    /**
+     * Demande à l'utilisateur de choisir la carte réseau à utiliser dans VSFy parmi celles disponibles sur sa machine
+     * Si une seule interface est disponible, pas de demande à l'utilisateur
+     * @return un objet NetworkInterfacePerso de la carte réseau choisie par l'utilisateur
+     */
     public NetworkInterfacePerso interfaceChooser() {
         NetworkInterfacePerso selectedInterface = null;
         ArrayList<NetworkInterfacePerso> availableInterfaces = getAvalaibleInterfaces();

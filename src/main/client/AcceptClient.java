@@ -8,16 +8,26 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Thread qui gère les sockets pour chaque connexion P2P avec un client
+ */
 public class AcceptClient implements Runnable {
 
     private ServerSocket serverSocket;
 
     private Socket exchangeSocket;
 
+    /**
+     * Constructeur
+     * @param s le socket d'échange du serveur P2P
+     */
     public AcceptClient(ServerSocket s) {
         this.serverSocket = s;
     }
 
+    /**
+     * Méthode démarre le serveur P2P
+     */
     @Override public void run() {
         try {
             while (true) {

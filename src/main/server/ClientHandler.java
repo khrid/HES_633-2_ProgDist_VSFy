@@ -12,6 +12,9 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+/**
+ * Thread qui gère les sockets, les flux et l'UUID mis à disposition pour chaque client
+ */
 public class ClientHandler implements Runnable {
 
     private Server server;
@@ -24,6 +27,13 @@ public class ClientHandler implements Runnable {
 
     private Client c;
 
+    /**
+     * Constructeur
+     * @param server le serveur qui va mettre en relation les clients pour diffusion P2P
+     * @param exchangeSocket le socket d'échange de données entre les clients
+     * @param dataIn le flux de données entrant
+     * @param dataOut le flux de données sortant
+     */
     public ClientHandler(Server server, Socket exchangeSocket, DataInputStream dataIn, DataOutputStream dataOut) {
         this.server = server;
         this.exchangeSocket = exchangeSocket;
@@ -38,6 +48,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Méthode qui lance le thread pour la gestion du client:
+     * -connexion du client et affectation d'un UUID
+     * -envoi des informations selon les instructions données par le client
+     * -diffusion des médias
+     * -déconnexion du client
+     */
     @Override
     public void run() {
         boolean interrupt = false;

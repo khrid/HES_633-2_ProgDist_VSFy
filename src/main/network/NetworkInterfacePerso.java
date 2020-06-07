@@ -3,7 +3,9 @@ package main.network;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 
-
+/**
+ * Méthode simplifiée qui fournit uniquement les propriétés nécessaires pour les interfaces réseaux
+ */
 public class NetworkInterfacePerso {
     private String interfaceName;   // interface name (eth0)
     private String interfaceDisplayname; // interface display name (Intel(R) 82579LM Gigabit Network Connection)
@@ -22,18 +24,34 @@ public class NetworkInterfacePerso {
           + interfaceDisplayname + '\'' + ", ip='" + ip + '\'' + '}';
     }
 
+    /**
+     * Retourne le nom système de l'interface réseau
+     * @return une chaîne de caractère du nom système de l'interface réseau
+     */
     public String getInterfaceName() {
         return interfaceName;
     }
 
+    /**
+     * Retourne le nom convivial de l'interface réseau
+     * @return une chaîne de caractère du nom convivial de l'interface réseau
+     */
     public String getInterfaceDisplayname() {
         return interfaceDisplayname;
     }
 
+    /**
+     * Retourne l'adresse IP de l'interface réseau
+     * @return une chaîne de caractère de l'adresse IP de l'interface réseau
+     */
     public String getIp() {
         return ip;
     }
 
+    /**
+     * Retourne l'objet InetAddress de l'interface réseau
+     * @return un object InetAddress de l'interface réseau
+     */
     public InetAddress getAddress() {
         return address;
     }

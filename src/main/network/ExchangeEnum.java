@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Structures des commandes utilisateur et technique
+ * Les commandes utilisateur sont celle mise à disposition dans l'interface console
+ */
 public enum ExchangeEnum {
     HELLO("HELLO", true, "HELLO - Establishes connection with the server"),
     GET_CLIENTS("GET_CLIENTS", true, "GET_CLIENTS - Get server's clients list"),
@@ -27,6 +31,10 @@ public enum ExchangeEnum {
         this.description = description;
     }
 
+    /**
+     * Retourne la liste des fonctions utilisateur disponibles
+     * @return un ArrayListe de chaîne de caractères des actions disponibles
+     */
     public static ArrayList<String> getAvailableActions() {
         ArrayList<String> list = new ArrayList<>();
         List<ExchangeEnum> enumValues = Arrays.asList(ExchangeEnum.values());
