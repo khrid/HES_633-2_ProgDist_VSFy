@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Librairie qui contient toutes les fonctions du serveur:
+ * -démarrage du serveur
+ * -attente de connexions clientes
+ * -enregistrement et suppression des clients
+ */
 public class Server {
 
     private InetAddress address;
@@ -31,11 +37,18 @@ public class Server {
     //public static Logger logger = LogManager.getLogger(Server.class);
     public static Logger logger = LogManager.getLogger();
 
-
+    /**
+     * Contructeur de la classe Serveur
+     *
+     * @param nip Toutes les informations de la carte réseau séléctionnée par l'utilisateur
+     */
     public Server(NetworkInterfacePerso nip)  {
         address = nip.getAddress();
     }
 
+    /**
+     * Méthode qui démarre le serveur avec les paramètres définis auparavant
+     */
     public void start() {
         logger.debug("Starting server");
         try {
@@ -47,6 +60,10 @@ public class Server {
         }
     }
 
+    /**
+     * Méthode qui écoute en permanence les connexions clientes
+     * Affecte un thread à chaque nouvelle connexion
+     */
     public void listen() {
         logger.info("Server is now listening for connections...");
 
@@ -69,16 +86,31 @@ public class Server {
         }
     }
 
+    /**
+     * Ajoute un client dans la liste des clients gérés par le serveur
+     *
+     * @param client un objet Client
+     */
     public void registerClient(Client client) {
         clients.add(client);
         logger.info("Registered client " + client.getUuid() + " with ip address " + client.getIp()+". Total clients : "+ clients.size());
     }
 
+    /**
+     * Supprime un client de la liste des clients gérés par le serveur
+     *
+     * @param client un objet Client
+     */
     public void removeClient(Client client) {
         clients.remove(client);
         logger.info("Removed client " + client.getUuid() + ". Total clients : " + clients.size());
     }
 
+    /**
+     * Retourne une liste des clients connectés au serveur
+     *
+     * @return ArrayList d'objet Client des clients connectés au serveur
+     */
     public ArrayList<Client> getClients() {
         return clients;
     }

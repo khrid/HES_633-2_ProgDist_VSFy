@@ -6,8 +6,18 @@ import main.network.NetworkTools;
 
 import java.net.ServerSocket;
 
+/**
+ * Interface console pour les clients
+ */
 public class AppClient {
 
+    /**
+     * Méthode de lancement du programme côté client
+     * Initialisation
+     * Demande à l'utilisateur de choisir une carte réseau
+     * Scan du répertoire et démarrage du serveur P2P si des médias sont trouvés
+     * Connexion au serveur
+     */
     public static void main(String[] args) {
         NetworkInterfacePerso nip;
         String serverIp;// = "192.168.1.103"; //192.168.2.223 - 172.16.41.134

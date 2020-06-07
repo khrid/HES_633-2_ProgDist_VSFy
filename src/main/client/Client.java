@@ -22,15 +22,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Librairie qui contient toutes les fonctions du clients:
+ * -connexion au serveur
+ * -exécution des commandes utilisateur
+ * -lecture des fichiers distants
+ * -envoi/réception de données en mode P2P
+ */
 public class Client implements Serializable {
 
     public static final long serialVersionUID = 42L;
 
     private static final String BASE_DIR = "/tmp/vsfy";
 
-    private static final List<String> EXTENSIONS_ALLOWED = Arrays.asList("mp3","wav","mp4");
-
-    String[] args;
+    private static final List<String> EXTENSIONS_ALLOWED = Arrays.asList("mp3","wav","aac");
 
     private String uuid; // identifiant du client, pour s'en sortir quand on lance plusieurs clients sur le même PC
 
@@ -62,6 +67,10 @@ public class Client implements Serializable {
 
     transient private String nowPlaying;
 
+    /**
+     * Contructeur de la classe Client
+     * @param nip Toutes les informations de la carte réseau séléctionnée par l'utilisateur
+     */
     public Client(NetworkInterfacePerso nip) {
         address = nip.getAddress(); // récupération de l'adresse IP de la machine
         System.out.println("Client ip " + nip.getIp()); // info utilisateur concernant l'IP
@@ -69,7 +78,6 @@ public class Client implements Serializable {
 
     /**
      * Méthode de connexion au serveur
-     *
      * @param serverName l'adresse IP du serveur
      */
     public void connectToServer(String serverName) {
@@ -92,6 +100,9 @@ public class Client implements Serializable {
         }
     }
 
+    /**
+     * Méthode qui gère les commandes envoyées par le client
+     */
     public void communicate() {
         Scanner scanner = new Scanner(System.in);
         boolean interrupted = false;
@@ -235,7 +246,9 @@ public class Client implements Serializable {
 
         }
     }
-
+    /**
+     * Méthode qui va chercher les tous les fichiers disponibles dans le répertoire des médias
+     */
     private void listFiles() {
         for (Client c : knownClients) {
             if (!c.getUuid().equalsIgnoreCase(this.getUuid())) {
@@ -251,26 +264,48 @@ public class Client implements Serializable {
         }
     }
 
+    /**
+     * Retourne le port de communication P2P
+     * @return le numéro du port de communication P2P
+     */
     public int getP2pPort() {
         return this.p2pPort;
     }
 
+    /**
+     * Retourne les fichiers disponibles pour la lecture
+     * @return une Collection d'objet File
+     */
     public Collection<File> getFiles() {
         return files;
     }
 
+    /**
+     * Retourne l'UUID du client
+     * @return String de l'UUID du client
+     */
     public String getUuid() {
         return uuid;
     }
 
+    /**
+     * Affecte l'UUID au client
+     */
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
+    /**
+     * Retourne l'adresse IP du client
+     * @return une chaîne de caractère de l'IP du client
+     */
     public String getIp() {
         return address.getHostAddress();
     }
 
+    /**
+     * Affiche la liste des actions possibles à l'utilisateur
+     */
     public void listActions() {
         System.out.println("List of possible actions (not case sensitive) : ");
         for (String s : ExchangeEnum.getAvailableActions()) {
@@ -279,6 +314,9 @@ public class Client implements Serializable {
         System.out.println("");
     }
 
+    /**
+     * Méthode qui va chercher tous les clients prêts à diffuser des médias
+     */
     private void getClients() {
         try {
             dataOut.writeUTF(ExchangeEnum.GET_CLIENTS.command);
@@ -290,6 +328,9 @@ public class Client implements Serializable {
         }
     }
 
+    /**
+     * Méthode qui remonte tous les fichiers gérés par VSFy selon les extensions autorisées
+     */
     public void scanFolder() {
         Path path = Paths.get(BASE_DIR);
         if (Files.exists(path)) { // si le répertoire existe
@@ -309,11 +350,18 @@ public class Client implements Serializable {
             System.out.println("Directory \"" + BASE_DIR + "\" does not exist. Carrying on.");
         }
     }
-
+    /**
+     * Méthode qui retourne l'extension du fichier fourni en paramètre
+     * @param filename le nom du fichier dont on veut obtenir l'extension
+     * @return une chaîne de caractère de l'extension du fichier
+     */
     private String getFileExtension(String filename) {
         return Optional.ofNullable(filename).filter(f -> f.contains(".")).map(f -> f.substring(filename.lastIndexOf(".") + 1)).orElse("other");
     }
 
+    /**
+     * Méthode qui démarre le thread du serveur P2P afin de diffuser un média
+     */
     public void startP2PServer() {
         try {
             ServerSocket p2pSocket = new ServerSocket(0, 10, address);
