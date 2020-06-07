@@ -26,7 +26,5 @@ public class AppClient {
         //System.out.println(c.getP2pPort());
         c.connectToServer(serverIp);
         c.communicate();
-
-        //Application.launch(VideoHandler.class,args);
     }
 }

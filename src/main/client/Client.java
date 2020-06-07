@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import javafx.application.Application;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -29,6 +30,8 @@ public class Client implements Serializable {
     private static final String BASE_DIR = "/tmp/vsfy";
 
     private static final List<String> EXTENSIONS_ALLOWED = Arrays.asList("mp3","wav","mp4");
+
+    String[] args;
 
     private String uuid; // identifiant du client, pour s'en sortir quand on lance plusieurs clients sur le même PC
 
