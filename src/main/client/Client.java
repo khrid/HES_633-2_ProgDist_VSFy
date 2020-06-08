@@ -159,10 +159,14 @@ public class Client implements Serializable {
                         }
                         break;
                     case PLAY:
+                        // Scanne le répertoire pour trouver les fichiers médias et cherche les clients disponibles
                         scanFolder();
                         getClients();
+
+                        // Bloc si des clients sont disponibles
                         if (!knownClients.isEmpty()) {
                             listFiles();
+                            // Bloc pour choisir le client auquel se connecter
                             System.out.print("Enter target UUID : ");
                             String target = scanner.nextLine();
                             Client client = null;
@@ -171,6 +175,7 @@ public class Client implements Serializable {
                                     client = c;
                                 }
                             }
+                            // Bloc pour choisir le fichier à lire
                             if (client != null) {
                                 System.out.println("Available files for selected client : ");
                                 for (File f : client.getFiles()) {
@@ -198,6 +203,7 @@ public class Client implements Serializable {
                                     String ext = target.substring(target.lastIndexOf('.') + 1);
                                     JFXPanel fxPanel = new JFXPanel(); // utilisé uniquement pour gérer les fichiers audios autre que .wav
 
+                                    // Bloc qui envoie le fichier et commence la lecture
                                     InputStream bufferedIn = new BufferedInputStream(p2pDataIn);
                                     File temp = null;
                                     try {
@@ -274,7 +280,7 @@ public class Client implements Serializable {
 
     /**
      * Retourne les fichiers disponibles pour la lecture
-     * @return une Collection d'objet File
+     * @return une Collection d'objets File
      */
     public Collection<File> getFiles() {
         return files;
@@ -290,6 +296,7 @@ public class Client implements Serializable {
 
     /**
      * Affecte l'UUID au client
+     * @param uuid une chaîne de caractère contenant l'UUID
      */
     public void setUuid(String uuid) {
         this.uuid = uuid;

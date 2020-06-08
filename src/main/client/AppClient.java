@@ -27,9 +27,9 @@ public class AppClient {
 
         NetworkTools nt = new NetworkTools(AppClient.class.getName());
         nip = nt.interfaceChooser();
-        serverIp = nip.getIp();
         Client c = new Client(nip);
         c.scanFolder();
+        serverIp = nt.serverIpChooser();
         if (c.getFiles().size() > 0) {
             c.startP2PServer();
         }

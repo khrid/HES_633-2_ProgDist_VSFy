@@ -26,7 +26,7 @@ public class AcceptClient implements Runnable {
     }
 
     /**
-     * Méthode démarre le serveur P2P
+     * Méthode qui démarre le serveur P2P
      */
     @Override public void run() {
         try {
