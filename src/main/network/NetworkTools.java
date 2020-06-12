@@ -83,7 +83,7 @@ public class NetworkTools {
             selectedInterface = availableInterfaces.get(choice-1); // index du tab != index montré à l'utilisateur
         } else { // si une seule interface, on sait laquelle utiliser
             selectedInterface = availableInterfaces.get(0);
-        }
+        }   
 
         if(log) {
             logger.debug("Selected interface : "+selectedInterface.getInterfaceName()+".");
