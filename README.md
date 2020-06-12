@@ -25,9 +25,9 @@ The server and client applications should be coded in java based on the librarie
   - [x] Give back a client IP and its list of audio file to another client
   - [x] Accept multiple clients simultaneously (use threads). 
 - The server must be able to write logs:
-  - [ ] On a file 
-  - [ ] The history must be kept (one file per month)
-  - [ ] 3 levels of log (info, warning, severe) should be handled 
+  - [x] On a file 
+  - [x] The history must be kept (one file per month)
+  - [x] 3 levels of log (info, warning, severe) should be handled 
      - Info for all the useful operations
     - Warning for all the possible network errors
     - Severe for the exceptions
