@@ -39,7 +39,6 @@ public class Server {
 
     /**
      * Contructeur de la classe Serveur
-     *
      * @param nip Toutes les informations de la carte réseau séléctionnée par l'utilisateur
      */
     public Server(NetworkInterfacePerso nip)  {
@@ -88,7 +87,6 @@ public class Server {
 
     /**
      * Ajoute un client dans la liste des clients gérés par le serveur
-     *
      * @param client un objet Client
      */
     public void registerClient(Client client) {
@@ -98,7 +96,6 @@ public class Server {
 
     /**
      * Supprime un client de la liste des clients gérés par le serveur
-     *
      * @param client un objet Client
      */
     public void removeClient(Client client) {
@@ -108,8 +105,7 @@ public class Server {
 
     /**
      * Retourne une liste des clients connectés au serveur
-     *
-     * @return ArrayList d'objet Client des clients connectés au serveur
+     * @return ArrayList d'objets Client des clients connectés au serveur
      */
     public ArrayList<Client> getClients() {
         return clients;

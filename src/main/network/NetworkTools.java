@@ -3,6 +3,7 @@ package main.network;
 import main.server.AppServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -82,11 +83,29 @@ public class NetworkTools {
             selectedInterface = availableInterfaces.get(choice-1); // index du tab != index montré à l'utilisateur
         } else { // si une seule interface, on sait laquelle utiliser
             selectedInterface = availableInterfaces.get(0);
-        }
+        }   
 
         if(log) {
             logger.debug("Selected interface : "+selectedInterface.getInterfaceName()+".");
         }
         return selectedInterface;
+    }
+
+    /**
+     * Demande à l'utilisateur de saisir l'adresse IP du serveur auquel il veut se conencter
+     * @return une chaîne de caractères contenant l'adresse IP du serveur
+     */
+    public String serverIpChooser(){
+
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        String input;
+        Scanner scanner = new Scanner(System.in);
+        while(true){
+            System.out.println("Please enter the IP address of the server you want to connect to");
+            input = scanner.nextLine();
+            if(validator.isValidInet4Address(input) || validator.isValidInet6Address(input)){
+                return input;
+            }
+        }
     }
 }

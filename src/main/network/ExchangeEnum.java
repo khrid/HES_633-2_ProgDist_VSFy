@@ -33,7 +33,7 @@ public enum ExchangeEnum {
 
     /**
      * Retourne la liste des fonctions utilisateur disponibles
-     * @return un ArrayListe de chaîne de caractères des actions disponibles
+     * @return un ArrayList de chaîne de caractères des actions disponibles
      */
     public static ArrayList<String> getAvailableActions() {
         ArrayList<String> list = new ArrayList<>();
